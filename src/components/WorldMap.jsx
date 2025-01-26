@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import * as d3 from 'd3';
 import CountrySelect from './CountrySelect';
+import { formatNumber } from '../utility';
 
 const useTradeData = (setTradeData) => {
     const tradeDataRef = useRef([]);
@@ -41,7 +42,7 @@ const useTradeData = (setTradeData) => {
 };
 
 const Globe = ({ selectedA, setSelectedA, selectedB, setSelectedB, selectedYear, setSelectedYear, setTradeData }) => {
-    const [countries, setCountries] = useState([]);
+    const [countries, setCountries] = useState({ reference: [], counterpart: [] });
     const svgRef = useRef(null); // Ref for SVG container
     const projectionRef = useRef(null); // Ref for projection
     const selectedRef = useRef({ selectedA: null, selectedB: null, selectedYear: 2020 });
@@ -139,7 +140,7 @@ const Globe = ({ selectedA, setSelectedA, selectedB, setSelectedB, selectedYear,
                     .on('mouseover', function (event, d) {
                         tooltip.style('visibility', 'visible')
                             .style('opacity', 1)
-                            .html(`Trade Value: ${d.OBS_VALUE.toFixed(2)} Mil.$<br>From: ${d.reference_area}<br>To: ${d.counterpart_area}`);
+                            .html(`Trade Value: ${formatNumber(d.OBS_VALUE.toFixed(2))} Mil.$<br>From: ${d.reference_area}<br>To: ${d.counterpart_area}`);
                         tooltip.style('left', `${event.pageX + 10}px`)
                             .style('top', `${event.pageY - 30}px`);
                         d3.selectAll('.trade-connection').style('opacity', 0.3);
@@ -237,7 +238,14 @@ const Globe = ({ selectedA, setSelectedA, selectedB, setSelectedB, selectedYear,
             d3.csv('/trade_data.csv')
         ]).then(([world, centroids, trade]) => {
             // Transform the csv data to JSON
-            setCountries(world.features.map((d) => d.properties.name));
+
+            // Set the countries to options if they have trade data
+            const referenceCountries = trade.map(d => d.reference_area);
+            const counterpartCountries = trade.map(d => d.counterpart_area);
+            setCountries({
+                reference: [...new Set(referenceCountries)],
+                counterpart: [...new Set(counterpartCountries)]
+            })
             // tradeDataRef.current = trade;
             // setTradeData(trade);
 
@@ -369,45 +377,45 @@ const Globe = ({ selectedA, setSelectedA, selectedB, setSelectedB, selectedYear,
             svgRef.current.paths = paths;
 
             // Highlight countries based on selection
-        svgRef.current.paths.style('fill', (d) => {
-            if (d.properties.name === selectedA)
-                return "var(--primary)"
-            if (d.properties.name === selectedB) return "var(--secondary)";
-            else if (selectedB == 'World') {
-                // Highilight all countries that have trade data with selectedA
+            svgRef.current.paths.style('fill', (d) => {
+                if (d.properties.name === selectedA)
+                    return "var(--primary)"
+                if (d.properties.name === selectedB) return "var(--secondary)";
+                else if (selectedB == 'World') {
+                    // Highilight all countries that have trade data with selectedA
 
-                // Get all trade data for selectedA
-                const trade = tradeDataRef.current;
-                const tradeData = trade.filter(
-                    d => (d.counterpart_area === selectedA) && selectedYear === d.TIME_PERIOD
-                );
+                    // Get all trade data for selectedA
+                    const trade = tradeDataRef.current;
+                    const tradeData = trade.filter(
+                        d => (d.counterpart_area === selectedA) && selectedYear === d.TIME_PERIOD
+                    );
 
-                // Get all countries that have trade data with selectedA
-                const cntries = tradeData.map(d => d.reference_area);
+                    // Get all countries that have trade data with selectedA
+                    const cntries = tradeData.map(d => d.reference_area);
 
-                if (cntries.includes(d.properties.name)) {
-                    return "var(--secondary)";
-                } else {
+                    if (cntries.includes(d.properties.name)) {
+                        return "var(--secondary)";
+                    } else {
+                        return checkTradeData(tradeDataRef.current, d.properties.name) ? "var(--earth)" : "var(--gray)";
+                    }
+
+                }
+                else {
                     return checkTradeData(tradeDataRef.current, d.properties.name) ? "var(--earth)" : "var(--gray)";
                 }
+            });
 
-            }
-            else {
-                return checkTradeData(tradeDataRef.current, d.properties.name) ? "var(--earth)" : "var(--gray)";
-            }
-        });
+            selectedRef.current = { selectedA, selectedB, selectedYear };
 
-        selectedRef.current = { selectedA, selectedB, selectedYear };
+            redrawTradeConnections(svg, projection);
 
-        redrawTradeConnections(svg, projection);
-
-        // Log the updated state here
-        console.log("Selected A:", selectedA);
-        console.log("Selected B:", selectedB);
+            // Log the updated state here
+            console.log("Selected A:", selectedA);
+            console.log("Selected B:", selectedB);
         });
 
 
-        
+
     }, [selectedA, selectedB, selectedYear]);
 
     useEffect(() => {

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
+import { formatNumber } from '../utility';
 
 const Sunburst = ({ selectedA, selectedB, selectedYear }) => {
     const exportSvgRef = useRef(null);
@@ -125,17 +126,23 @@ const Sunburst = ({ selectedA, selectedB, selectedYear }) => {
                     d3.select(this).style('opacity', 1);
                 })
                 .append('title')
-                .text(d => `${d.data.name}\n${d.value.toFixed(2)} Mil. $`);
+                .text(d => `${d.data.name}\n${formatNumber(d.value.toFixed(2))} Mil. $`);
+
+            // Sum the values of the children of the root
+            const totalValue = root.value;
 
             // Add text in the middle of the sunburst chart
             svg.append('text')
                 .attr('text-anchor', 'middle')
-                .attr('dy', width / 2 + 5)
+                .attr('dy', width / 2 - 5)
                 .attr('dx', height / 2)
                 .style('font-size', '1rem')
                 .style('fill', 'white')
                 .style('pointer-events', 'none') // Make x-axis text not clickable and transparent for cursor
-                .text(title);
+                // Add title and total value on new lines
+                .html(`${title}<tspan x="${width / 2}" dy="1.2em">${formatNumber(totalValue.toFixed(2))}</tspan>`);
+
+
         };
 
         // Render export sunburst
@@ -175,11 +182,11 @@ const Sunburst = ({ selectedA, selectedB, selectedYear }) => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly', height: '100%' }}>
             <div>
-                <h3>Export from <span style={{ color: 'var(--primary)' }}>{selectedA}</span> to <span style={{ color: 'var(--secondary)' }}>{selectedB}</span> by economic activity</h3>
+                <h3>Export from <span style={{ color: 'var(--primary)' }}>{selectedA}</span> to <span style={{ color: 'var(--secondary)' }}>{selectedB}</span> by economic activity in {selectedYear} (Mil. $)</h3>
             </div>
             <svg ref={exportSvgRef}></svg>
             <div>
-                <h3>Import to <span style={{ color: 'var(--primary)' }}>{selectedA}</span> from <span style={{ color: 'var(--secondary)' }}>{selectedB}</span> by economic activity</h3>
+                <h3>Import to <span style={{ color: 'var(--primary)' }}>{selectedA}</span> from <span style={{ color: 'var(--secondary)' }}>{selectedB}</span> by economic activity in {selectedYear} (Mil. $)</h3>
             </div>
             <svg ref={importSvgRef}></svg>
         </div>

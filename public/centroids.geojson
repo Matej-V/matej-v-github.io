@@ -43,9 +43,9 @@
                 ]
             },
             "properties": {
-                "COUNTRY": "Chinese Taipei",
+                "COUNTRY": "Taiwan",
                 "ISO": "TW",
-                "COUNTRYAFF": "Chinese Taipei",
+                "COUNTRYAFF": "Taiwan",
                 "AFF_ISO": "TW"
             }
         },
@@ -1163,9 +1163,9 @@
                 ]
             },
             "properties": {
-                "COUNTRY": "Côte d’Ivoire",
+                "COUNTRY": "Ivory Coast",
                 "ISO": "CI",
-                "COUNTRYAFF": "Côte d’Ivoire",
+                "COUNTRYAFF": "Ivory Coast",
                 "AFF_ISO": "CI"
             }
         },
@@ -2443,9 +2443,9 @@
                 ]
             },
             "properties": {
-                "COUNTRY": "Türkiye",
+                "COUNTRY": "Turkey",
                 "ISO": "TR",
-                "COUNTRYAFF": "Türkiye",
+                "COUNTRYAFF": "Turkey",
                 "AFF_ISO": "TR"
             }
         },

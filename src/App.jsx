@@ -16,7 +16,7 @@ function App() {
     return (
         <>
             <div>
-                <h2>International trade flow</h2>
+                <h2>International trade data with detailed economic activities</h2>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", width: "100%", minHeight: "min-content" }}>
 

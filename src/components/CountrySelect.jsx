@@ -11,18 +11,18 @@ const CountrySelect = ({ countries, selectedA, selectedB, setSelectedA, setSelec
                     value={selectedA || ''}
                     onChange={(e) => {
                         setSelectedA(e.target.value);
-                        setSelectedB(null); // Clear Country B if Country A changes
+                        // setSelectedB(null); // Clear Country B if Country A changes
                     }}
                 >
                     <option value="">Select a country</option>
-                    {countries.map((country) => (
+                    {countries.reference.map((country) => (
                         <option key={country} value={country}>
                             {country}
                         </option>
                     ))}
                 </select>
             </div>
-            <h3 style={{display: 'flex', alignItems: 'center'}}><div style={{ display: 'inline-flex' }}><span style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center' }}><FaArrowRight style={{ position: 'relative', right: '-13', bottom: '-6' }} /> </span><span style={{ color: 'var(--secondary)', display: 'flex', alignItems: 'center' }}><FaArrowLeft style={{ position: 'relative', left: '-13', top: '-6' }} /></span></div></h3>
+            <h3 style={{ display: 'flex', alignItems: 'center' }}><div style={{ display: 'inline-flex' }}><span style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center' }}><FaArrowRight style={{ position: 'relative', right: '-13', bottom: '-6' }} /> </span><span style={{ color: 'var(--secondary)', display: 'flex', alignItems: 'center' }}><FaArrowLeft style={{ position: 'relative', left: '-13', top: '-6' }} /></span></div></h3>
             <div>
                 <label style={{ color: 'var(--secondary)', 'fontWeight': 'bold' }}>Counterpart Area: </label><br />
                 <select
@@ -32,7 +32,7 @@ const CountrySelect = ({ countries, selectedA, selectedB, setSelectedA, setSelec
                 >
                     <option value="">Select a country</option>
                     <option value="World">World</option>
-                    {countries
+                    {countries.counterpart
                         .filter((country) => country !== selectedA) // Exclude Country A
                         .map((country) => (
                             <option key={country} value={country}>

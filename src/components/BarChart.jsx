@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { FaArrowRight, FaArrowLeft } from 'react-icons/fa';
+import { formatNumber } from '../utility';
 
 const BidirectionalBarChart = ({ selectedA, selectedB, selectedYear, setSelectedYear, tradeData }) => {
     const svgRef = useRef(null);
@@ -104,7 +105,9 @@ const BidirectionalBarChart = ({ selectedA, selectedB, selectedYear, setSelected
                     d3.selectAll(`.bar-ab-${d.TIME_PERIOD}`).attr('opacity', 0.5);
                     d3.selectAll(`.bar-ba-${d.TIME_PERIOD}`).attr('opacity', 0.5);
                 }
-            });
+            })
+            .append('title')
+            .text(d => `${formatNumber(d.OBS_VALUE.toFixed(2))} Mil. $`);
 
 
         // Bars for B -> A
@@ -132,7 +135,10 @@ const BidirectionalBarChart = ({ selectedA, selectedB, selectedYear, setSelected
                     d3.selectAll(`.bar-ab-${d.TIME_PERIOD}`).attr('opacity', 0.5);
                     d3.selectAll(`.bar-ba-${d.TIME_PERIOD}`).attr('opacity', 0.5);
                 }
-            });
+            })
+            .append('title')
+            .text(d => `${formatNumber(d.OBS_VALUE.toFixed(2))} Mil. $`);
+
         // Axes
         const xAxis = d3.axisBottom(xScale).tickFormat(d => d);
         const yAxis = d3.axisLeft(yScale);
