@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
+import { FaArrowRight, FaArrowLeft } from 'react-icons/fa';
 
-const BidirectionalBarChart = ({ selectedA, selectedB, selectedYear, tradeData }) => {
+const BidirectionalBarChart = ({ selectedA, selectedB, selectedYear, setSelectedYear, tradeData }) => {
     const svgRef = useRef(null);
 
     useEffect(() => {
@@ -12,15 +13,13 @@ const BidirectionalBarChart = ({ selectedA, selectedB, selectedYear, tradeData }
 
         // Clear previous chart
         const svg = d3.select(svgRef.current);
-        // if the svg is not empty, remove all elements
-        if (!svg.empty())
-            console.log('svg is not empty');
+
         svg.selectAll('*').remove();
 
         // Dimensions
-        const width = 700;
-        const height = 400;
-        const margin = { top: 20, right: 20, bottom: 20, left: 80 };
+        const width = 800;
+        const height = 300;
+        const margin = { top: 10, right: 10, bottom: 10, left: 70 };
         const chartHeight = height - margin.top - margin.bottom;
         const chartWidth = width - margin.left - margin.right;
 
@@ -34,38 +33,19 @@ const BidirectionalBarChart = ({ selectedA, selectedB, selectedYear, tradeData }
         // Filter data
         let dataAB = [];
         let dataBA = [];
+        dataAB = tradeData.filter(
+            d => d.reference_area === selectedA && d.counterpart_area === selectedB
+        );
         if (selectedB === 'World') {
             // Sum export over all countries with selected reference country
-            dataAB = tradeData.filter(
-                d => d.reference_area === selectedA && d.MEASURE === 'EXGR'
-            ).reduce((acc, curr) => {
-                const existing = acc.find(d => d.TIME_PERIOD === curr.TIME_PERIOD);
-                if (existing) {
-                    existing.OBS_VALUE += curr.OBS_VALUE;
-                } else {
-                    acc.push({ ...curr });
-                }
-                return acc;
-            }, []);
-
-            // Sum import over all countries with selected reference country
-            dataBA = tradeData.filter(
-                d => d.reference_area === selectedA && d.MEASURE === 'IMGR'
-            ).reduce((acc, curr) => {
-                const existing = acc.find(d => d.TIME_PERIOD === curr.TIME_PERIOD);
-                if (existing) {
-                    existing.OBS_VALUE += curr.OBS_VALUE;
-                } else {
-                    acc.push({ ...curr });
-                }
-                return acc;
-            }, []);
+            dataBA = d3.rollups(
+                tradeData.filter(d => d.counterpart_area === selectedA),
+                v => d3.sum(v, d => d.OBS_VALUE),
+                d => d.TIME_PERIOD
+            ).map(([TIME_PERIOD, OBS_VALUE]) => ({ TIME_PERIOD, OBS_VALUE }));
         } else {
-            dataAB = tradeData.filter(
-                d => d.reference_area === selectedA && d.counterpart_area === selectedB && d.MEASURE === 'EXGR'
-            );
             dataBA = tradeData.filter(
-                d => d.reference_area === selectedA && d.counterpart_area === selectedB && d.MEASURE === 'IMGR'
+                d => d.reference_area === selectedB && d.counterpart_area === selectedA
             );
         }
 
@@ -103,27 +83,56 @@ const BidirectionalBarChart = ({ selectedA, selectedB, selectedYear, tradeData }
             .data(dataAB)
             .enter()
             .append('rect')
-            .attr('class', 'bar-ab')
+            // Set class for each bar to be able to select it later
+            .attr('class', d => `bar-ab-${d.TIME_PERIOD}`)
             .attr('x', d => xScale(d.TIME_PERIOD))
             .attr('y', d => yScale(d.OBS_VALUE))
             .attr('width', xScale.bandwidth())
             .attr('height', d => chartHeight / 2 - yScale(d.OBS_VALUE))
             .attr('fill', 'var(--export)')
-            .attr('opacity', d => d.TIME_PERIOD === selectedYear ? 1 : 0.5);
+            .attr('opacity', d => d.TIME_PERIOD === selectedYear ? 1 : 0.5)
+            .on('click', (event, d) => {
+                setSelectedYear(d.TIME_PERIOD);
+            })
+            .on('mouseover', function (event, d) {
+                d3.selectAll(`.bar-ab-${d.TIME_PERIOD}`).attr('opacity', 1);
+                d3.selectAll(`.bar-ba-${d.TIME_PERIOD}`).attr('opacity', 1);
+            })
+            .on('mouseout', (event, d) => {
+                // Set opacity back to 0.5 if year is not selected for both A -> B and B -> A
+                if (d.TIME_PERIOD !== selectedYear) {
+                    d3.selectAll(`.bar-ab-${d.TIME_PERIOD}`).attr('opacity', 0.5);
+                    d3.selectAll(`.bar-ba-${d.TIME_PERIOD}`).attr('opacity', 0.5);
+                }
+            });
+
 
         // Bars for B -> A
         chartGroup.selectAll('.bar-ba')
             .data(dataBA)
             .enter()
             .append('rect')
-            .attr('class', 'bar-ba')
+            .attr('class', d => `bar-ba-${d.TIME_PERIOD}`)
             .attr('x', d => xScale(d.TIME_PERIOD))
             .attr('y', chartHeight / 2)
             .attr('width', xScale.bandwidth())
             .attr('height', d => yScaleNegative(d.OBS_VALUE))
             .attr('fill', 'var(--import)')
-            .attr('opacity', d => d.TIME_PERIOD === selectedYear ? 1 : 0.5);
-
+            .attr('opacity', d => d.TIME_PERIOD === selectedYear ? 1 : 0.5)
+            .on('click', (event, d) => {
+                setSelectedYear(d.TIME_PERIOD);
+            })
+            .on('mouseover', function (event, d) {
+                d3.selectAll(`.bar-ab-${d.TIME_PERIOD}`).attr('opacity', 1);
+                d3.selectAll(`.bar-ba-${d.TIME_PERIOD}`).attr('opacity', 1);
+            })
+            .on('mouseout', (event, d) => {
+                // Set opacity back to 0.5 if year is not selected for both A -> B and B -> A
+                if (d.TIME_PERIOD !== selectedYear) {
+                    d3.selectAll(`.bar-ab-${d.TIME_PERIOD}`).attr('opacity', 0.5);
+                    d3.selectAll(`.bar-ba-${d.TIME_PERIOD}`).attr('opacity', 0.5);
+                }
+            });
         // Axes
         const xAxis = d3.axisBottom(xScale).tickFormat(d => d);
         const yAxis = d3.axisLeft(yScale);
@@ -135,7 +144,8 @@ const BidirectionalBarChart = ({ selectedA, selectedB, selectedYear, tradeData }
             .attr('transform', 'rotate(-90)') // Rotate 90 degrees
             .style('text-anchor', 'start') // Adjust anchor for readability
             .attr('dx', '-3em') // Fine-tune horizontal positioning
-            .attr('dy', '-0.5em'); // Fine-tune vertical positioning
+            .attr('dy', '-0.5em') // Fine-tune vertical positioning
+            .style('pointer-events', 'none'); // Make x-axis text not clickable and transparent for cursor
 
         // Add y-axis for A -> B and B -> A
         chartGroup.append('g').call(yAxis);
@@ -174,7 +184,11 @@ const BidirectionalBarChart = ({ selectedA, selectedB, selectedYear, tradeData }
     }, [selectedA, selectedB, selectedYear, tradeData]);
 
     return (
-        <svg ref={svgRef}></svg>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-evenly', height: '100%' }}>
+            <h3>Export and import <div style={{ display: 'inline-flex' }}><span style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center' }}>{selectedA}<FaArrowRight style={{ position: 'relative', right: '-13', bottom: '-6' }} /> </span><span style={{ color: 'var(--secondary)', display: 'flex', alignItems: 'center' }}><FaArrowLeft style={{ position: 'relative', left: '-13', top: '-6' }} /> {selectedB}</span></div></h3>
+            <svg ref={svgRef}></svg>
+        </div >
+
     );
 };
 

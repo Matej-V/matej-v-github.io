@@ -1,11 +1,12 @@
 // CountrySelect.jsx
 import React from 'react';
+import { FaArrowRight, FaArrowLeft } from 'react-icons/fa';
 
 const CountrySelect = ({ countries, selectedA, selectedB, setSelectedA, setSelectedB }) => {
     return (
         <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '10px' }}>
             <div>
-                <label>Reference Area: </label>
+                <label style={{ color: 'var(--primary)', 'fontWeight': 'bold' }}>Reference Area: </label><br />
                 <select
                     value={selectedA || ''}
                     onChange={(e) => {
@@ -21,8 +22,9 @@ const CountrySelect = ({ countries, selectedA, selectedB, setSelectedA, setSelec
                     ))}
                 </select>
             </div>
+            <h3 style={{display: 'flex', alignItems: 'center'}}><div style={{ display: 'inline-flex' }}><span style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center' }}><FaArrowRight style={{ position: 'relative', right: '-13', bottom: '-6' }} /> </span><span style={{ color: 'var(--secondary)', display: 'flex', alignItems: 'center' }}><FaArrowLeft style={{ position: 'relative', left: '-13', top: '-6' }} /></span></div></h3>
             <div>
-                <label>Counterart: </label>
+                <label style={{ color: 'var(--secondary)', 'fontWeight': 'bold' }}>Counterpart Area: </label><br />
                 <select
                     value={selectedB || ''}
                     onChange={(e) => setSelectedB(e.target.value)}

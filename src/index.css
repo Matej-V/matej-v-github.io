@@ -14,14 +14,17 @@
 
 
 
-    --primary: #219ebc;
-    --secondary: #d63d47;
+    --primary: #00b4d8;
+    --secondary: #d12937;
+    --tertiary: #fb8500;
+    --quaternary: #D5A021;
+    --quinary: #B8B3BE;
     --ocean: #242424;
     --earth: #d0d4d6;
     --borders: #4a5759;
     --gray: #8b8d8f;
     --import: #c90f1b;
-    --export: #219ebc;
+    --export: #0077b6;
 }
 
 a {
@@ -45,6 +48,10 @@ body {
 h1 {
     font-size: 3.2em;
     line-height: 1.1;
+}
+
+h3 {
+    margin: 0 0;
 }
 
 button {

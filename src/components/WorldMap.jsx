@@ -8,12 +8,20 @@ const useTradeData = (setTradeData) => {
 
     useEffect(() => {
         Promise.all([
-            d3.json('/world.geojson'),
             d3.json('/centroids.geojson'),
-            d3.json('/trade_data.json')
-        ]).then(([, centroids, trade]) => {
+            d3.csv('/trade_data.csv')
+        ]).then(([centroids, trade]) => {
+
+            // Convert the csv data to JSON
+            trade.forEach(d => {
+                d.TIME_PERIOD = +d.TIME_PERIOD;
+                d.OBS_VALUE = +d.OBS_VALUE;
+            });
+
             tradeDataRef.current = trade;
             setTradeData(trade);
+            console.log("Trade data loaded:", trade);
+
 
             centroidMapRef.current = new Map(
                 centroids.features.map(d => {
@@ -57,7 +65,7 @@ const Globe = ({ selectedA, setSelectedA, selectedB, setSelectedB, selectedYear,
             let dataBA = [];
             if (selectedB === 'World') {
                 dataAB = trade.filter(
-                    d => d.reference_area === selectedA && selectedYear === d.TIME_PERIOD
+                    d => d.reference_area === selectedA && selectedYear === d.TIME_PERIOD && d.counterpart_area !== 'World'
                 );
                 dataBA = trade.filter(
                     d => d.counterpart_area === selectedA && selectedYear === d.TIME_PERIOD
@@ -70,6 +78,9 @@ const Globe = ({ selectedA, setSelectedA, selectedB, setSelectedB, selectedYear,
                     d => d.reference_area === selectedB && d.counterpart_area === selectedA && selectedYear === d.TIME_PERIOD
                 );
             }
+
+            console.log('Data for A -> B:', dataAB);
+            console.log('Data for B -> A:', dataBA);
 
             const tooltip = d3.select('#tooltip'); // Reference to the tooltip div
 
@@ -89,7 +100,6 @@ const Globe = ({ selectedA, setSelectedA, selectedB, setSelectedB, selectedYear,
             };
 
             const drawTradeConnections = (data, color, offset) => {
-
                 // Get the max trade value from the filtered data
                 const maxTradeValue = d3.max(data, d => d.OBS_VALUE);
 
@@ -224,11 +234,12 @@ const Globe = ({ selectedA, setSelectedA, selectedB, setSelectedB, selectedYear,
         Promise.all([
             d3.json('/world.geojson'),
             d3.json('/centroids.geojson'), // Replace with actual path
-            d3.json('/trade_data.json') // Replace with actual path
+            d3.csv('/trade_data.csv')
         ]).then(([world, centroids, trade]) => {
+            // Transform the csv data to JSON
             setCountries(world.features.map((d) => d.properties.name));
-            tradeDataRef.current = trade;
-            setTradeData(trade);
+            // tradeDataRef.current = trade;
+            // setTradeData(trade);
 
             // Draw the map
             const paths = globe.append('g')
@@ -356,7 +367,47 @@ const Globe = ({ selectedA, setSelectedA, selectedB, setSelectedB, selectedYear,
 
             // Store paths for highlighting
             svgRef.current.paths = paths;
+
+            // Highlight countries based on selection
+        svgRef.current.paths.style('fill', (d) => {
+            if (d.properties.name === selectedA)
+                return "var(--primary)"
+            if (d.properties.name === selectedB) return "var(--secondary)";
+            else if (selectedB == 'World') {
+                // Highilight all countries that have trade data with selectedA
+
+                // Get all trade data for selectedA
+                const trade = tradeDataRef.current;
+                const tradeData = trade.filter(
+                    d => (d.counterpart_area === selectedA) && selectedYear === d.TIME_PERIOD
+                );
+
+                // Get all countries that have trade data with selectedA
+                const cntries = tradeData.map(d => d.reference_area);
+
+                if (cntries.includes(d.properties.name)) {
+                    return "var(--secondary)";
+                } else {
+                    return checkTradeData(tradeDataRef.current, d.properties.name) ? "var(--earth)" : "var(--gray)";
+                }
+
+            }
+            else {
+                return checkTradeData(tradeDataRef.current, d.properties.name) ? "var(--earth)" : "var(--gray)";
+            }
         });
+
+        selectedRef.current = { selectedA, selectedB, selectedYear };
+
+        redrawTradeConnections(svg, projection);
+
+        // Log the updated state here
+        console.log("Selected A:", selectedA);
+        console.log("Selected B:", selectedB);
+        });
+
+
+        
     }, [selectedA, selectedB, selectedYear]);
 
     useEffect(() => {
@@ -365,7 +416,7 @@ const Globe = ({ selectedA, setSelectedA, selectedB, setSelectedB, selectedYear,
         // Highlight countries based on selection
         svgRef.current.paths.style('fill', (d) => {
             if (d.properties.name === selectedA)
-                return "var(--export)"
+                return "var(--primary)"
             if (d.properties.name === selectedB) return "var(--secondary)";
             else if (selectedB == 'World') {
                 // Highilight all countries that have trade data with selectedA
@@ -423,26 +474,6 @@ const Globe = ({ selectedA, setSelectedA, selectedB, setSelectedB, selectedYear,
                     pointerEvents: 'none',
                     opacity: 0
                 }}></div>
-            </div>
-            <div>
-                <form action="">
-                    <input
-                        type="range"
-                        min="1997"
-                        max="2020"
-                        step="1"
-                        value={selectedYear}
-                        onChange={(e) => {
-                            let year = parseInt(e.target.value);
-                            setSelectedYear(year);
-                            selectedRef.current = { selectedA, selectedB, selectedYear: year };
-                            redrawTradeConnections(svgRef.current, projectionRef.current);
-                        }
-                        }
-                        style={{ width: '100%' }}
-                    />
-                    <label>Year: {selectedYear}</label>
-                </form>
             </div>
         </div>
     );
