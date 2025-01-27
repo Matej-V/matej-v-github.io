@@ -1,8 +1,14 @@
-# React + Vite
+Aplikácia využíva Framework React a Vite pre vytvorenie statickej webovej stránky.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Inštalácia
+1. Stiahnite si projekt z GitHubu
+2. Nainštalujte si Node.js
+3. Otvorte si terminál a prejdite do priečinka s projektom
+4. Nainštalujte si všetky potrebné balíčky príkazom `npm install`
+5. Spustite aplikáciu príkazom `npm run dev`
 
-Currently, two official plugins are available:
+## Statická stránka
+Statická stránka sa nachádza v priečinku `dist`. Pre zobrazenie stránky otvorte súbor `index.html` v prehliadači.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Pre vytvorenie novej statickej stránky spustite príkaz `npm run build`. Statická stránka sa vytvorí v priečinku `dist`.
+Následne možno použiť `npm run preview` pre zobrazenie statickej stránky v prehliadači.
